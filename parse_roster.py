@@ -1,13 +1,13 @@
 import xml.etree.ElementTree as ET
 
 
-def get_roster(path):
+def get_roster(path="raw.xml"):
     """
     Parses the XML input at the specified location and returns a dictionary as the roster
     :param path: location of XML file
     :return: dictionary with classrooms as keys and a list of names as values
     """
-    tree = ET.parse('raw.xml')
+    tree = ET.parse(path)
     root = tree.getroot()
 
     roster = {}
