@@ -17,13 +17,18 @@ def process_list(file='raw.xml'):
     if not os.path.exists(filepath):
         os.makedirs(filepath)
     print("Starting process...")
+    user_month = input("Month/Year?")
+    if user_month:
+        month = user_month
+    else:
+        month = datetime.datetime.now().strftime('%B, %Y')
 
     for group in rles:  # I'll try and take care of the logic to split the sheets here
         classroom = sorted(rles[group])
         children = len(classroom)
         print(group, children, "children.")
         if children < 14:
-            make_sheet(group, filepath, classroom)  # group is the key or name of the class
+            make_sheet(group, filepath, classroom, month)  # group is the key or name of the class
         else:
             for i in range(0, ceil(children / 13)):
                 group_name = group + "_" + str(i+1)
@@ -33,7 +38,7 @@ def process_list(file='raw.xml'):
                 if stop > children:
                     stop = children  # what't the one line way to do this?
 
-                make_sheet(group_name, filepath, classroom[start:stop])
+                make_sheet(group_name, filepath, classroom[start:stop], month)
     print("Processed", len(rles), "groups.")
 
 
@@ -42,7 +47,7 @@ def get_timestamps():
     return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H-%M-%S')
 
 
-def make_sheet(group, filepath, classroom):
+def make_sheet(group, filepath, classroom, in_month):
     """
     Processes each group, creating and saving the roster
     :param group: name of the group
@@ -54,7 +59,7 @@ def make_sheet(group, filepath, classroom):
 
     book = load_workbook("template.xlsx")
     name = filepath + "/" + group.replace('/', '') + ".xlsx"
-    month = datetime.datetime.now().strftime('%B, %Y')
+    month = in_month
     sheet = book.active
 
     sheet['B1'] = group
