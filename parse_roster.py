@@ -13,7 +13,7 @@ def get_roster(path="raw.xml"):
     roster = {}
     children = get_child_list(root)
 
-    name = None
+    name = [None, None]
     room = None
 
     for child in children:
@@ -25,8 +25,12 @@ def get_roster(path="raw.xml"):
             elif field.attrib['Name'] == "ChildFullName1":
                 for value in field:
                     if value.tag == '{urn:crystal-reports:schemas:report-detail}Value':
-                        name = value.text
-                        roster.setdefault(room, []).append(name)
+                        name[0] = value.text
+            elif field.attrib['Name'] == "Description1":
+                for value in field:
+                    if value.tag == '{urn:crystal-reports:schemas:report-detail}Value':
+                        name[1] = value.text
+                        roster.setdefault(room, []).append((name[0], name[1]))
 
     return roster
 

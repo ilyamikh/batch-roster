@@ -23,6 +23,10 @@ def process_list(file='raw.xml'):
     else:
         month = datetime.datetime.now().strftime('%B, %Y')
 
+    create_monthly_rosters(rles, filepath, month)
+
+
+def create_monthly_rosters(rles, filepath, month):
     for group in rles:  # I'll try and take care of the logic to split the sheets here
         classroom = sorted(rles[group])
         children = len(classroom)
@@ -68,7 +72,7 @@ def make_sheet(group, filepath, classroom, in_month):
     current_cell = 5  # see template
     for child in classroom:
         cellname = 'A' + str(current_cell)
-        sheet[cellname] = child
+        sheet[cellname] = child[0]
         current_cell += 2
 
     book.save(name)
