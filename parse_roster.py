@@ -29,7 +29,7 @@ def get_roster(path="raw.xml"):
             elif field.attrib['Name'] == "Description1":
                 for value in field:
                     if value.tag == '{urn:crystal-reports:schemas:report-detail}Value':
-                        name[1] = value.text
+                        name[1] = get_code(value.text)
                         roster.setdefault(room, []).append((name[0], name[1]))
 
     return roster
@@ -57,3 +57,14 @@ def get_child_list(root):
                     # So now children contains a list of all children with their classroom as one of the fields.
 
     return children
+
+
+def get_code(status):
+    """Returns number code for food program status"""
+    if status == "Free":
+        return 1
+    elif status == "Reduced":
+        return 2
+    else:
+        return 3
+
