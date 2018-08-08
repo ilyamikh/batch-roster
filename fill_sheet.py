@@ -12,34 +12,40 @@ def process_list(file='raw.xml'):
     :param file: path to raw XML data
     :return: none
     """
-    rles = parse_roster.get_roster(file)
 
     print("Starting process...")
-    user_month = input("Month/Year? (Leave blank to use current date)")
-    if user_month:
-        month = user_month
-    else:
-        month = datetime.datetime.now().strftime('%B, %Y')
+    rles = parse_roster.get_roster(file)
 
     output_choice = None
     while output_choice != 'q':
         output_choice = input("Enter 'm' for Meal Count or 'r' for Roster. 'q' to quit.")
 
         if output_choice == 'r':
+            user_month = input("Month/Year? (Leave blank to use current date)")
+            if user_month:
+                month = user_month
+            else:
+                month = datetime.datetime.now().strftime('%B, %Y')
             filepath = "Roster_" + get_timestamps()
             if not os.path.exists(filepath):
                 os.makedirs(filepath)
             create_monthly_rosters(rles, filepath, month)
+
         elif output_choice == 'm':
+            user_date = input("Week of MM-DD-YYYY? (Leave blank to use current date)")
+            if user_date:
+                date = user_date
+            else:
+                date = get_current_date()
             filepath = "Meal_Count_" + get_timestamps()
             if not os.path.exists(filepath):
                 os.makedirs(filepath)
-            create_meal_rosters(rles, filepath, month)
+            create_meal_rosters(rles, filepath, date)
 
 
 def create_meal_rosters(rles, filepath, month):
     for group in rles:
-        classroom = rles[group]  # left sorted by category? Or will it be left unsorted?
+        classroom = rles[group]  # they're sorted in make_meal_sheet, is that inconsistent?
         children = len(classroom)
         print(group, children, "children.")
         make_meal_sheet(group, filepath, classroom, month)
@@ -72,6 +78,20 @@ def get_timestamps():
     return datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d-%H-%M-%S')
 
 
+def get_current_date():
+    return datetime.datetime.fromtimestamp(time.time()).strftime('%m-%d-%Y')
+
+
+def get_date_obj(date_string):
+    """Takes a string in the format mm-dd-yyyy and returns a datetime object."""
+    return datetime.datetime.strptime(date_string, '%m-%d-%Y')
+
+
+def format_date(date_obj):
+    """Takes a datetime object and returns a mm-dd-yyyy format string"""
+    return datetime.datetime.strftime(date_obj, '%m-%d-%Y')
+
+
 def make_meal_sheet(group, filepath, classroom, start_date):
     """Processes each group, creating and savin the meal count sheet"""
     print("Filling", group + ', ', len(classroom), "children...")
@@ -81,12 +101,14 @@ def make_meal_sheet(group, filepath, classroom, start_date):
     # date variables go here
     sheet = book.active
 
-    # code to fill dates and year/month cell goes here
+    sheet['E7'] = format_date(get_date_obj(start_date))
+    sheet['I7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=1))
+    sheet['M7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=2))
+    sheet['Q7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=3))
+    sheet['U7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=4))
 
     current_cell = 10  # see template
-    current_cat = 1
-    # to add a blank line. What way does the input roster need to be sorted?
-    # to sort the roster one way and meal counts another it might need two separate source XML files
+    current_cat = 1  # to add a blank line
 
     classroom.sort(key=lambda x: x[1])
     for child in classroom:
