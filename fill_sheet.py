@@ -118,7 +118,7 @@ def make_meal_sheet(group, filepath, classroom, start_date):
 
     sheet['B50'] = "Categories current as of " + get_timestamps()
 
-    sheet['B6'] = "GROUP: " + group
+    sheet['B6'] = "GROUP: " + group + ', ' + len(classroom) + ' children.'
     sheet['B7'] = "MONTH: " + get_month(get_date_obj(start_date))
     sheet['B8'] = "YEAR: " + get_year(get_date_obj(start_date))
 
