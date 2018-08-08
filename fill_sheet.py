@@ -1,4 +1,5 @@
 from openpyxl import load_workbook
+from openpyxl import styles
 import parse_roster
 import os
 import time
@@ -92,8 +93,16 @@ def format_date(date_obj):
     return datetime.datetime.strftime(date_obj, '%m-%d-%Y')
 
 
+def get_month(date_obj):
+    return datetime.datetime.strftime(date_obj, '%B')
+
+
+def get_year(date_obj):
+    return datetime.datetime.strftime(date_obj, '%Y')
+
+
 def make_meal_sheet(group, filepath, classroom, start_date):
-    """Processes each group, creating and savin the meal count sheet"""
+    """Processes each group, creating and saving the meal count sheet. Maximum length is 33 children."""
     print("Filling", group + ', ', len(classroom), "children...")
 
     book = load_workbook("meal_count_template.xlsx")
@@ -107,12 +116,21 @@ def make_meal_sheet(group, filepath, classroom, start_date):
     sheet['Q7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=3))
     sheet['U7'] = format_date(get_date_obj(start_date) + datetime.timedelta(days=4))
 
+    sheet['B50'] = "Categories current as of " + get_timestamps()
+
+    sheet['B6'] = "GROUP: " + group
+    sheet['B7'] = "MONTH: " + get_month(get_date_obj(start_date))
+    sheet['B8'] = "YEAR: " + get_year(get_date_obj(start_date))
+
     current_cell = 10  # see template
     current_cat = 1  # to add a blank line
+    cat_count = dict()
 
     classroom.sort(key=lambda x: x[1])
     for child in classroom:
+        cat_count[child[1]] = cat_count.get(child[1], 0) + 1  # simple tally
         if current_cat != child[1]:
+            set_border(sheet, current_cell)
             current_cell += 1  # skip a line to separate the categories visually
             current_cat = child[1]
         cellname = 'B' + str(current_cell)
@@ -121,9 +139,33 @@ def make_meal_sheet(group, filepath, classroom, start_date):
         sheet[cellname] = child[1]  # category
         current_cell += 1
 
+    if 1 in cat_count:
+        sheet['B47'] = "Category 1: " + str(cat_count[1])
+    else:
+        sheet['B47'] = "Category 1: 0"
+
+    if 2 in cat_count:
+        sheet['B48'] = "Category 2: " + str(cat_count[2])
+    else:
+        sheet['B48'] = "Category 2: 0"
+
+    if 3 in cat_count:
+        sheet['B49'] = "Category 3: " + str(cat_count[3])
+    else:
+        sheet['B49'] = "Category 3: 0"
+
     book.save(name)
     book.close()
     print("Done")
+
+
+def set_border(sheet, row):
+    thick_bottom = styles.Border(bottom=styles.Side(style='thick'))
+    col = 'B'
+    while col != 'X':
+        cell = col + str(row)
+        sheet[cell].border = thick_bottom
+        col = chr(ord(col) + 1)  # the alphabet is indeed in order
 
 
 def make_roster_sheet(group, filepath, classroom, in_month):
